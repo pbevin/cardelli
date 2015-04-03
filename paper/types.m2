@@ -386,8 +386,7 @@ PROCEDURE AnalyzeRecDeclBind(decl: Decl; VAR env: Env; VAR list: NonGenericVars)
   BEGIN
     CASE decl^.class OF
     | DefClass:
-
-newTypeVar := NewTypeVar();
+        newTypeVar := NewTypeVar();
         env := EnvMod.Extend(decl^.binder, newTypeVar, env);
         list := GenericVarMod.Extend(newTypeVar, list);
     | SeqClass:
