@@ -8,6 +8,9 @@ let idFunc = parse("fun(x) x");
 let idType = typeCheck(idFunc);
 console.log("Type of ID function:", idType.toString());
 
+let f = parse("fun (x) let f = (fun(x) x) in f(x)")
+console.log("f has type:", typeCheck(f).toString());
+
 
 let int = Type.create("int");
 let bool = Type.create("bool");
