@@ -6,11 +6,11 @@ import Type
 import Env
 
 unify :: Type -> Type -> InstanceMap -> Maybe [(VarName, Type)]
-unify t1 t2 m = unify' (prune t1 m) (prune t2 m) m
+unify t1 t2 m = unify' (prune m t1) (prune m t2) m
 
 unify' :: Type -> Type -> InstanceMap -> Maybe [(VarName, Type)]
 unify' t1@(TypeVariable id) t2 m
-  | t1 /= t2 && prune t1 m `occursIn` prune t2 m = Nothing
+  | t1 /= t2 && prune m t1 `occursIn` prune m t2 = Nothing
   | t1 == t2  = Just []
   | otherwise = Just [(id, t2)]
 unify' t1 t2@(TypeVariable _) m = unify' t2 t1 m

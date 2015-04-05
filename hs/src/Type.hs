@@ -38,14 +38,14 @@ listType a = TypeOperator "[]" [a]
 typeName :: Type -> TypeName
 typeName (TypeVariable a) = a
 
-prune :: Type -> InstanceMap -> Type
-prune t@(TypeVariable name) m =
+prune :: InstanceMap -> Type -> Type
+prune m t@(TypeVariable name) =
   case (Map.lookup name m) of
     Nothing -> t
-    Just t' -> prune t' m
-prune t@(TypeOperator op args) m =
-  TypeOperator op $ map (\a -> prune a m) args
-prune any _ = any
+    Just t' -> prune m t'
+prune m t@(TypeOperator op args) =
+  TypeOperator op $ map (prune m) args
+prune _ any = any
 
 varName :: Int -> String
 varName n = [chr $ n + ord 'a']

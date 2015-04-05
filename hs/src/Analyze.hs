@@ -129,9 +129,8 @@ unifyTypes t1 t2 = do
   let newInstances = liftM (Map.union (instances env) . Map.fromList) mods
   case newInstances of
     Just ni -> do liftA $ put $ env { instances = ni }
-                  return $ prune t1 ni
+                  return $ prune ni t1
     Nothing -> throwError $ "Could not unify " ++ (show t1) ++ " and " ++ (show t2) ++ "."
 
 pruneType :: Type -> Analyzer Type
-pruneType t = do
-  liftA get >>= return . prune t . instances
+pruneType t = liftA get >>= return . (flip prune) t . instances

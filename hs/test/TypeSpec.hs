@@ -20,20 +20,20 @@ spec = do
 
   describe "prune" $ do
     it "returns a variable with no instance as-is" $ do
-      prune a Map.empty `shouldBe` a
+      prune Map.empty a `shouldBe` a
 
     it "returns its instance when there is one" $ do
-      prune b (Map.fromList [("b", a)]) `shouldBe` a
+      prune (Map.fromList [("b", a)]) b `shouldBe` a
 
     it "returns the bottom level when more than 2" $ do
-      prune c (Map.fromList [("c", b), ("b", a)]) `shouldBe` a
+      prune (Map.fromList [("c", b), ("b", a)]) c `shouldBe` a
 
     it "returns a BasicType as-is" $ do
-      prune int Map.empty `shouldBe` int
-      prune a (Map.fromList [("a", int)]) `shouldBe` int
+      prune Map.empty int `shouldBe` int
+      prune (Map.fromList [("a", int)]) a `shouldBe` int
 
     it "returns a TypeOperator as-is" $ do
-      prune e Map.empty `shouldBe` e
+      prune Map.empty e `shouldBe` e
 
   describe "occursIn" $ do
     it "is true when types are the same" $ do
