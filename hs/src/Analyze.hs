@@ -10,6 +10,7 @@ import Data.Maybe
 import AST
 import Parse
 import Env
+import RetrieveEnv
 import Type
 import Unify
 
