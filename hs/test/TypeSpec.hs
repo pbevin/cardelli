@@ -37,26 +37,20 @@ spec = do
 
   describe "occursIn" $ do
     it "is true when types are the same" $ do
-      int `occursIn` (int, Map.empty) `shouldBe` True
-      a `occursIn` (a, Map.empty) `shouldBe` True
-      a `occursIn` (a, Map.fromList [("a", int)]) `shouldBe` True
+      int `occursIn` int `shouldBe` True
+      a `occursIn` a `shouldBe` True
 
-    it "is false when the types are different" $ do
-      int `occursIn` (bool, Map.empty) `shouldBe` False
-      bool `occursIn` (int, Map.empty) `shouldBe` False
-      a `occursIn` (b, Map.empty) `shouldBe` False
-
-    it "is true when a type resolves to another type" $ do
-      a `occursIn` (b, Map.fromList [("a", b)]) `shouldBe` True
-      a `occursIn` (b, Map.fromList [("b", a)]) `shouldBe` True
+    it "is false for two different basic types" $ do
+      int `occursIn` bool `shouldBe` False
+      bool `occursIn` int `shouldBe` False
+      a `occursIn` b `shouldBe` False
 
     it "is true when t1 is in t2's operands" $ do
-      a `occursIn` (e, Map.empty) `shouldBe` True
-      b `occursIn` (e, Map.fromList [("b", a)]) `shouldBe` True
-      int `occursIn` (e, Map.empty) `shouldBe` True
+      a `occursIn` e `shouldBe` True
+      int `occursIn` e `shouldBe` True
 
     it "is false when t1 is not in t2's operands" $ do
-      bool `occursIn` (e, Map.empty) `shouldBe` False
+      bool `occursIn` e `shouldBe` False
 
   describe "show" $ do
     it "shows operator types correctly" $ do

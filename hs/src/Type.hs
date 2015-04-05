@@ -50,8 +50,8 @@ prune any _ = any
 varName :: Int -> String
 varName n = [chr $ n + ord 'a']
 
-occursIn :: Type -> (Type, InstanceMap) -> Bool
-occursIn t1 (TypeOperator _ args, m) = t1 `occursInList` (args, m)
-  where occursInList t (ts, m) = any occurrence ts
-          where occurrence t2 = t `occursIn` (t2, m)
-occursIn t1 (t2, m) = prune t1 m == prune t2 m
+occursIn :: Type -> Type -> Bool
+occursIn t1 (TypeOperator _ args) = t1 `occursInList` args
+  where occursInList t ts = any occurrence ts
+          where occurrence t2 = t `occursIn` t2
+occursIn t1 t2 = t1 == t2
