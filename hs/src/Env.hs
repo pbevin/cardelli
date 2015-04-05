@@ -14,13 +14,19 @@ type VarMap      = Map VarName Type
 
 data Env = Env {
   counter :: VarCounter,
-  vars :: VarMap,
-  ngvars :: NonGenericVars,
   instances :: InstanceMap
 } deriving (Eq, Show)
 
+data TypeVars = TypeVars {
+  vars :: VarMap,
+  ngvars :: NonGenericVars
+} deriving (Eq, Show)
+
 emptyEnv :: Env
-emptyEnv = Env 0 Map.empty [] Map.empty
+emptyEnv = Env 0 Map.empty
+
+emptyVars :: TypeVars
+emptyVars = TypeVars Map.empty []
 
 newVar :: State Env Type
 newVar = do
@@ -29,35 +35,23 @@ newVar = do
   put $ e { counter = (n + 1) }
   return $ TypeVariable (varName n)
 
-putEnv :: VarName -> Type -> State Env ()
-putEnv a t = do
-  e <- get
-  put $ e { vars = Map.insert a t $ vars e }
-  return ()
+putEnv :: VarName -> Type -> TypeVars -> TypeVars
+putEnv a t tv = tv { vars = Map.insert a t (vars tv) }
 
-getEnv :: VarName -> State Env (Maybe Type)
-getEnv a = get >>= return . Map.lookup a . vars
+addNonGeneric :: Type -> TypeVars -> TypeVars
+addNonGeneric (TypeVariable a) tv = tv { ngvars = a:ngvars tv }
+addNonGeneric _ tv = tv
 
-retrieveEnv :: VarName -> State Env (Maybe Type)
-retrieveEnv a = do
-  e <- get
-  case Map.lookup a (vars e) of
+getEnv :: VarName -> TypeVars -> Maybe Type
+getEnv a tv = Map.lookup a $ vars tv
+
+retrieveEnv :: VarName -> TypeVars -> State Env (Maybe Type)
+retrieveEnv a tv = do
+  case Map.lookup a (vars tv) of
     Nothing -> return Nothing
     Just t' -> do
-      copied <- copyType t' (ngvars e)
+      copied <- copyType t' (ngvars tv)
       return $ Just copied
-
-addGeneric :: Type -> State Env ()
-addGeneric (TypeVariable id) = do
-  e <- get
-  put $ e { ngvars = id:ngvars e }
-  return ()
-addGeneric t = return ()
-
-addNonGenericVar :: VarName -> Type -> State Env ()
-addNonGenericVar a t = do
-  putEnv a t
-  addGeneric t
 
 copyType :: Type -> NonGenericVars -> State Env Type
 copyType t ngvars = do

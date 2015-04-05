@@ -5,10 +5,14 @@ import Data.List (intercalate)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-data Type = TypeVariable String
+type TypeName = String
+
+data Type = TypeVariable TypeName
           | BasicType String
           | TypeOperator String [Type]
    deriving Eq
+
+type InstanceMap = Map TypeName Type
 
 instance Show Type where
   show (TypeVariable a) = a
@@ -31,8 +35,8 @@ funType a b = TypeOperator "->" [a,b]
 pairType a b = TypeOperator "," [a,b]
 listType a = TypeOperator "[]" [a]
 
-type TypeName = String
-type InstanceMap = Map TypeName Type
+typeName :: Type -> TypeName
+typeName (TypeVariable a) = a
 
 prune :: Type -> InstanceMap -> Type
 prune t@(TypeVariable name) m =

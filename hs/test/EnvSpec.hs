@@ -12,28 +12,15 @@ spec = do
     let int = BasicType "int"
     let bool = BasicType "int"
 
-    it "remembers a type definition" $ do
-      runState (putEnv "n" int) emptyEnv `shouldBe`
-        ((), Env 0 (Map.fromList [("n", int)]) [] Map.empty)
-
-    it "can retrieve a type definition" $ do
-      let env = Env 0 (Map.fromList [("n", int)]) [] Map.empty
-      runState (getEnv "n") env `shouldBe` (Just int, env)
-
-    it "can get and put a type in a monad" $ do
-      let test = do putEnv "a" int
-                    putEnv "b" bool
-                    a <- getEnv "a"
-                    b <- getEnv "b"
-                    c <- getEnv "c"
-                    return (a, b, c)
-
-      let (result, env) = runState test emptyEnv in do
-        result `shouldBe` (Just int, Just bool, Nothing)
+    it "can get and put types" $ do
+      let tv = putEnv "a" int $ putEnv "b" bool $ emptyVars
+      getEnv "a" tv `shouldBe` Just int
+      getEnv "b" tv `shouldBe` Just bool
+      getEnv "c" tv `shouldBe` Nothing
 
     it "can generate a new variable" $ do
       runState newVar emptyEnv `shouldBe`
-        (TypeVariable "a", Env 1 Map.empty [] Map.empty)
+        (TypeVariable "a", Env 1 Map.empty)
 
     describe "varName" $ do
       it "runs through the alphabet" $ do
@@ -42,20 +29,18 @@ spec = do
     describe "retrieveEnv" $ do
       context "for a generic type" $ do
         it "returns Nothing for a non-existent variable" $ do
-          runState (retrieveEnv "a") emptyEnv `shouldBe`
+          runState (retrieveEnv "a" emptyVars) emptyEnv `shouldBe`
             (Nothing, emptyEnv)
 
         it "returns a copy of a variable when it exists" $ do
           let test = do a <- newVar
-                        putEnv "x" a
-                        retrieveEnv "x"
+                        retrieveEnv "x" $ putEnv "x" a emptyVars
 
           let (result, env) = runState test emptyEnv in do
             result `shouldBe` Just (TypeVariable "b")
 
         it "returns the original of a basic type" $ do
-          let test = do putEnv "x" int
-                        retrieveEnv "x"
+          let test = retrieveEnv "x" $ putEnv "x" int emptyVars
 
           let (result, env) = runState test emptyEnv in do
             result `shouldBe` Just int
@@ -63,8 +48,7 @@ spec = do
         it "returns a copy of a type operator" $ do
           let test = do a <- newVar
                         b <- newVar
-                        putEnv "x" $ funType a b
-                        retrieveEnv "x"
+                        retrieveEnv "x" $ putEnv "x" (funType a b) emptyVars
 
           let (Just x, env) = runState test emptyEnv in do
             let c = TypeVariable "c"
@@ -80,8 +64,7 @@ spec = do
                         let listOfa = listType a
                         let listOfb = listType b
                         let mapType = funType aTob $ funType listOfa listOfb
-                        putEnv "map" mapType
-                        retrieveEnv "map"
+                        retrieveEnv "map" $ putEnv "map" mapType emptyVars
 
           let (Just mapType, env) = runState test emptyEnv in do
             let c = TypeVariable "c"
@@ -89,20 +72,20 @@ spec = do
             mapType `shouldBe` funType (funType c d) (funType (listType c) (listType d))
 
       context "For a non-generic type" $ do
+        let vars = addNonGeneric (TypeVariable "a") emptyVars
+
         it "returns the original of a variable" $ do
           let test = do a <- newVar
-                        addGeneric a
-                        putEnv "x" a
-                        retrieveEnv "x"
+                        let tv = putEnv "x" a vars
+                        retrieveEnv "x" tv
           let (result, env) = runState test emptyEnv in do
             result `shouldBe` Just (TypeVariable "a")
 
         it "returns the original of a type operator" $ do
           let test = do a <- newVar
-                        addGeneric a
-                        putEnv "f" $ funType a a
-                        Just f <- retrieveEnv "f"
+                        let tv = putEnv "f" (funType a a) vars
+                        f <- retrieveEnv "f" tv
                         return (f, a)
 
           let ((f, a), env) = runState test emptyEnv in do
-            f `shouldBe` funType a a
+            f `shouldBe` Just (funType a a)

@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Analyze (runAnalyzer, analyzeExpr, addEnv, addEnvUnknown) where
+module Analyze (runAnalyzer, analyzeExpr, initialVars) where
 
 import Control.Monad.State
 import Control.Monad.Error
@@ -17,107 +17,109 @@ newtype Analyzer a = Analyzer {
   runA :: ErrorT String (State Env) a
 } deriving (Monad, MonadError String, Functor, Applicative)
 
-basicEnv :: Env
-basicEnv = emptyEnv { vars = basicVars }
-basicVars = Map.fromList
-  [ ("true", bool),
-    ("false", bool),
-    ("zero", funType int bool),
-    ("pair", funType a (funType b (pairType a b))),
-    ("fst", funType (pairType a b) a),
-    ("snd", funType (pairType a b) b),
-    ("id", funType a a),
-    ("eq", funType a (funType a bool)),
-    ("plus", intBinOp),
-    ("minus", intBinOp),
-    ("times", intBinOp),
-    ("div", intBinOp),
-    ("and", boolBinOp),
-    ("or", boolBinOp),
-    ("negate", funType int int),
-    ("not", funType bool bool) ]
-    where a = TypeVariable "_a"
-          b = TypeVariable "_b"
-          intBinOp = funType int (funType int int)
-          boolBinOp = funType bool (funType bool bool)
+initialVars :: TypeVars
+initialVars = emptyVars { vars = defs }
+  where defs = Map.fromList
+          [ ("true", bool),
+            ("false", bool),
+            ("zero", funType int bool),
+            ("pair", funType a (funType b (pairType a b))),
+            ("fst", funType (pairType a b) a),
+            ("snd", funType (pairType a b) b),
+            ("id", funType a a),
+            ("eq", funType a (funType a bool)),
+            ("plus", intBinOp),
+            ("minus", intBinOp),
+            ("times", intBinOp),
+            ("div", intBinOp),
+            ("and", boolBinOp),
+            ("or", boolBinOp),
+            ("negate", funType int int),
+            ("not", funType bool bool) ]
+        a = TypeVariable "_a"
+        b = TypeVariable "_b"
+        intBinOp = funType int (funType int int)
+        boolBinOp = funType bool (funType bool bool)
 
 runAnalyzer :: Analyzer a -> Either String (a, Env)
-runAnalyzer a = case runState (runErrorT (runA a)) basicEnv of
+runAnalyzer a = case runState (runErrorT (runA a)) emptyEnv of
   (Left err, _)  -> Left err
   (Right r, env) -> Right (r, env)
 
 liftA :: State Env a -> Analyzer a
 liftA m = Analyzer (lift m)
 
-analyzeExpr :: Expr -> Analyzer Type
-analyzeExpr (Num _) = return $ BasicType "int"
-analyzeExpr (Var v) = do
-  t <- liftA $ retrieveEnv v
-  case t of
-    Just t' -> return t'
-    Nothing -> liftA get >>= \env -> throwError $ "No such variable: " ++ v
+analyzeExpr :: TypeVars -> Expr -> Analyzer Type
+analyzeExpr tv expr = case expr of
+  Num _ -> return $ BasicType "int"
+  Var v -> do
+    t <- liftA $ retrieveEnv v tv
+    case t of
+      Just t' -> return t'
+      Nothing -> throwError $ "No such variable: " ++ v
 
-analyzeExpr (Cond test ifTrue ifFalse) = do
-  t <- analyzeExpr test
-  unifyTypes t bool
-  t1 <- analyzeExpr ifTrue
-  t2 <- analyzeExpr ifFalse
-  unifyTypes t1 t2
+  Cond test ifTrue ifFalse -> do
+    t <- analyzeExpr tv test
+    unifyTypes t bool
+    t1 <- analyzeExpr tv ifTrue
+    t2 <- analyzeExpr tv ifFalse
+    unifyTypes t1 t2
 
-analyzeExpr (Lambda var body) = saveEnv $ do
-  varType <- liftA newVar
-  liftA $ addNonGenericVar var varType
-  bodyType <- analyzeExpr body
-  t <- pruneType $ funType varType bodyType
-  return t
+  Lambda var body -> do
+    a <- liftA newVar
+    b <- analyzeExpr (addNonGeneric a $ putEnv var a tv) body
+    t <- pruneType $ funType a b
+    return t
 
-analyzeExpr (FunCall func arg) = saveEnv $ do
-  funcType <- analyzeExpr func
-  argType <- analyzeExpr arg
-  resType <- liftA newVar
-  unifyTypes funcType (funType argType resType)
-  pruneType resType
+  FunCall func arg -> do
+    funcType <- analyzeExpr tv func
+    argType <- analyzeExpr tv arg
+    resType <- liftA newVar
+    unifyTypes funcType (funType argType resType)
+    pruneType resType
 
-analyzeExpr (Block decl scope) = do
-  analyzeDecl decl
-  t <- analyzeExpr scope
-  pruneType t
+  Block decl scope -> do
+    tv' <- analyzeDecl tv decl
+    t <- analyzeExpr tv' scope
+    pruneType t
 
-analyzeDecl :: Decl -> Analyzer Type
-analyzeDecl (Assign varName expr) = do
-  exprType <- analyzeExpr expr
-  liftA $ putEnv varName exprType
-  return (exprType)
+analyzeDecl :: TypeVars -> Decl -> Analyzer TypeVars
+analyzeDecl tv decl = case decl of
+  Assign varName expr -> do
+    exprType <- analyzeExpr tv expr
+    return $ putEnv varName exprType tv
 
-analyzeDecl (Seq a b) = analyzeDecl a >> analyzeDecl b
+  Seq a b -> do
+    tv' <- analyzeDecl tv a
+    analyzeDecl tv' b
 
-analyzeDecl (Rec rec) = do
-  createBinding rec
-  analyzeAndUnify rec
+  Rec rec -> do
+    tv' <- createBinding tv rec
+    analyzeAndUnify tv' rec
 
+createBinding :: TypeVars -> Decl -> Analyzer TypeVars
+createBinding tv decl = case decl of
+  Assign varName _ -> do
+    t <- liftA newVar
+    return $ putEnv varName t $ addNonGeneric t tv
 
-createBinding :: Decl -> Analyzer ()
-createBinding (Assign varName expr) = addEnvUnknown varName
-createBinding (Seq a b) = createBinding a >> createBinding b
-createBinding (Rec rec) = createBinding rec
+  Seq a b -> do
+    tv' <- createBinding tv a
+    createBinding tv' b
 
-analyzeAndUnify :: Decl -> Analyzer Type
+  Rec rec -> createBinding tv rec
 
-analyzeAndUnify (Assign varName expr) = do
-  Just varType  <- liftA $ retrieveEnv varName
-  exprType <- analyzeExpr expr
-  unifyTypes varType exprType
+analyzeAndUnify :: TypeVars -> Decl -> Analyzer TypeVars
+analyzeAndUnify tv decl = case decl of
+  Assign varName expr -> do
+    Just varType  <- liftA $ retrieveEnv varName tv
+    exprType <- analyzeExpr tv expr
+    unifyTypes varType exprType
+    return tv
 
-analyzeAndUnify (Seq a b) = analyzeAndUnify a >> analyzeAndUnify b
-analyzeAndUnify (Rec rec) = analyzeAndUnify rec
+  Seq a b -> analyzeAndUnify tv a >> analyzeAndUnify tv b
 
-saveEnv :: Analyzer a -> Analyzer a
-saveEnv analyzer = do
-  origEnv <- liftA get
-  t <- analyzer
-  env <- liftA get
-  liftA $ put $ env { vars = vars origEnv, ngvars = ngvars origEnv }
-  return t
+  Rec rec -> analyzeAndUnify tv rec
 
 unifyTypes :: Type -> Type -> Analyzer Type
 unifyTypes t1 t2 = do
@@ -132,14 +134,3 @@ unifyTypes t1 t2 = do
 pruneType :: Type -> Analyzer Type
 pruneType t = do
   liftA get >>= return . prune t . instances
-
-addEnv :: VarName -> Type -> Analyzer ()
-addEnv n t = do
-  liftA $ addNonGenericVar n t
-  return ()
-
-addEnvUnknown :: VarName -> Analyzer ()
-addEnvUnknown n = do
-  t <- liftA newVar
-  liftA $ addNonGenericVar n t
-  return ()

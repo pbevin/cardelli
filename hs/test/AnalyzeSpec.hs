@@ -23,35 +23,43 @@ idfunc = funType w w
 fromLeft :: Either a b -> a
 fromLeft (Left l) = l
 
-fromRight :: Either a b -> b
+fromRight :: Either String b -> b
 fromRight (Right r) = r
+fromRight (Left err) = error err
 
-findType :: String -> [String] -> Type
-findType str vars = fst $ fromRight $ runTypeInferencer str vars
+findType :: String -> TypeVars -> Type
+findType str tv = fst $ fromRight $ runTypeInferencer tv str
+
+mkTypeVars :: [(VarName, Type)] -> TypeVars
+mkTypeVars varNames = foldl put initialVars varNames
+  where put tv (a, t) = putEnv a t $ addNonGeneric t tv
 
 typeOf :: String -> Type
-typeOf str = simplify $ findType str []
+typeOf str = simplify $ findType str initialVars
 
 debug :: String -> IO ()
-debug prog = putStrLn $ either ("Error: " ++) show $ runTypeInferencer prog []
+debug prog = putStrLn $ either ("Error: " ++) show $ runTypeInferencer initialVars prog
 
-runTypeInferencer :: String -> [String] -> (Either String (Type, Env))
-runTypeInferencer str vars = runAnalyzer test
-  where test = do mapM_ addEnvUnknown vars
-                  analyzeExpr $ parseFun str
+runTypeInferencer :: TypeVars -> String -> (Either String (Type, Env))
+runTypeInferencer initialVars =
+  runAnalyzer . analyzeExpr initialVars . parseFun
 
 spec :: Spec
 spec = do
   it "retrieves a variable's type from the env" $ do
-    findType "n" ["n"] `shouldBe` a
+    let vars = mkTypeVars [("n", TypeVariable "a")]
+    findType "n" vars `shouldBe` TypeVariable "a"
 
   it "assigns int to a number" $ do
     typeOf "1" `shouldBe` int
 
   it "unifies types for a cond" $ do
-    findType "if x then 1 else y" ["x", "y"] `shouldBe` int
-    findType "if x then y else 1" ["x", "y"] `shouldBe` int
-    findType "if x then x else x" ["x"] `shouldBe` bool
+    debug "fun(x) if x then x else x"
+    let vars = mkTypeVars [ ("x", TypeVariable "a"),
+                            ("y", TypeVariable "b") ]
+    findType "if x then 1 else y" vars `shouldBe` int
+    findType "if x then y else 1" vars `shouldBe` int
+    findType "if x then x else x" vars `shouldBe` bool
 
   it "analyzes a lambda" $ do
     typeOf "fun (x) x" `shouldBe` funType a a
