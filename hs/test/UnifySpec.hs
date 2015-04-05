@@ -5,6 +5,8 @@ import qualified Data.Map as Map
 import Type
 import Unify
 
+success vs = Just $ Map.fromList vs
+
 spec :: Spec
 spec = do
   let a = TypeVariable "a"
@@ -15,16 +17,16 @@ spec = do
 
   describe "unify" $ do
     it "unifies a with int" $ do
-      unify a int Map.empty `shouldBe` Just [("a", int)]
+      unify a int Map.empty `shouldBe` success [("a", int)]
 
     it "unifies a with b" $ do
-      unify a b Map.empty `shouldBe` Just [("a", b)]
+      unify a b Map.empty `shouldBe` success [("a", b)]
 
     it "unifies b with a" $ do
-      unify b a Map.empty `shouldBe` Just [("b", a)]
+      unify b a Map.empty `shouldBe` success [("b", a)]
 
     it "unifies a with a" $ do
-      unify a a Map.empty `shouldBe` Just []
+      unify a a Map.empty `shouldBe` success []
 
     it "does not unify a with [a]" $ do
       unify a aList Map.empty `shouldBe` Nothing
@@ -32,7 +34,7 @@ spec = do
     it "unifies a->b with int->bool" $ do
       let f = funType a b
       let g = funType int bool
-      unify f g Map.empty `shouldBe` Just [("a", int), ("b", bool)]
+      unify f g Map.empty `shouldBe` success [("a", int), ("b", bool)]
 
     it "does not unify a->a with int->bool" $ do
       let f = funType a a
@@ -47,7 +49,7 @@ spec = do
     it "unifies a->bool with int->b" $ do
       let f = funType a bool
       let g = funType int b
-      unify f g Map.empty `shouldBe` Just [("a", int), ("b", bool)]
+      unify f g Map.empty `shouldBe` success [("a", int), ("b", bool)]
 
     it "does not unify int->int with int->int->int" $ do
       let plus = funType int (funType int int)
@@ -57,7 +59,7 @@ spec = do
     it "unifies int->a with int->b" $ do
       let f = funType int a
       let g = funType int b
-      unify f g Map.empty `shouldBe` Just [("a", b)]
+      unify f g Map.empty `shouldBe` success [("a", b)]
 
     it "does not unify a with int when a already has instance bool" $ do
       unify a int (Map.fromList [("a", bool)]) `shouldBe` Nothing

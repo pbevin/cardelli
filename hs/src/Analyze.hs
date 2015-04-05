@@ -125,12 +125,14 @@ analyzeAndUnify tv decl = case decl of
 unifyTypes :: Type -> Type -> Analyzer Type
 unifyTypes t1 t2 = do
   env <- liftA get
-  let mods = unify t1 t2 (instances env)
-  let newInstances = liftM (Map.union (instances env) . Map.fromList) mods
-  case newInstances of
+  case unify t1 t2 (instances env) of
     Just ni -> do liftA $ put $ env { instances = ni }
                   return $ prune ni t1
-    Nothing -> throwError $ "Could not unify " ++ (show t1) ++ " and " ++ (show t2) ++ "."
+    Nothing -> throwError $ couldNotUnify t1 t2
+
+couldNotUnify :: Type -> Type -> String
+couldNotUnify t1 t2 = "Could not unify " ++
+                        (show t1) ++ " and " ++ (show t2) ++ "."
 
 pruneType :: Type -> Analyzer Type
 pruneType t = liftA get >>= return . (flip prune) t . instances
