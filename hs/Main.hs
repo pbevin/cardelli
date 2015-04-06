@@ -3,6 +3,7 @@ import System.Console.Readline
 import AST
 import Analyze
 import Parse (parseExpr)
+import ParseType
 
 main = hello >> readEvalPrintLoop
 
@@ -22,7 +23,7 @@ typeInference input = case parseExpr input of
   Right expr -> typeInference' expr
 
 typeInference' :: Expr -> String
-typeInference' expr = case runAnalyzer $ analyzeExpr expr of
+typeInference' expr = case runAnalyzer (analyzeExpr initialVars expr) of
   Left err -> err
   Right (t, env) -> show t
 
