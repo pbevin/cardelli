@@ -54,7 +54,6 @@ spec = do
     typeOf "1" `shouldBe` int
 
   it "unifies types for a cond" $ do
-    debug "fun(x) if x then x else x"
     let vars = mkTypeVars [ ("x", TypeVariable "a"),
                             ("y", TypeVariable "b") ]
     findType "if x then 1 else y" vars `shouldBe` int
