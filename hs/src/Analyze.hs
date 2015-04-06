@@ -132,7 +132,7 @@ unifyTypes t1 t2 = do
 
 couldNotUnify :: Type -> Type -> String
 couldNotUnify t1 t2 = "Could not unify " ++
-                        (show t1) ++ " and " ++ (show t2) ++ "."
+                        (show t1) ++ " and " ++ (show t2)
 
 pruneType :: Type -> Analyzer Type
 pruneType t = liftA get >>= return . (flip prune) t . instances
