@@ -10,18 +10,7 @@ import Parse
 import Env
 import Type
 import Simplify
-
-a = TypeVariable "a"
-b = TypeVariable "b"
-
-u = TypeVariable "u"
-v = TypeVariable "v"
-pair = funType u (funType v $ pairType u v)
-w = TypeVariable "w"
-idfunc = funType w w
-
-fromLeft :: Either a b -> a
-fromLeft (Left l) = l
+import ParseType
 
 fromRight :: Either String b -> b
 fromRight (Right r) = r
@@ -61,18 +50,18 @@ spec = do
     findType "if x then x else x" vars `shouldBe` bool
 
   it "analyzes a lambda" $ do
-    typeOf "fun (x) x" `shouldBe` funType a a
-    typeOf "fun (x) 1" `shouldBe` funType a int
+    typeOf "fun (x) x" `shouldBe` parseType "a->a"
+    typeOf "fun (x) 1" `shouldBe` parseType "a->Int"
 
   it "analyzes an int function" $ do
-    typeOf "fun(x) x + 1" `shouldBe` funType int int
+    typeOf "fun(x) x + 1" `shouldBe` parseType "Int->Int"
 
   it "analyzes fun(x) id(x)" $ do
-    typeOf "fun(x) id(x)" `shouldBe` funType a a
+    typeOf "fun(x) id(x)" `shouldBe` parseType "a->a"
 
   it "analyzes a heterogeneous function application" $ do
-    typeOf "pair(id(3), id(true))" `shouldBe` pairType int bool
-    typeOf "fun(x) pair(id(3), id(x))" `shouldBe` funType a (pairType int a)
+    typeOf "pair(id(3), id(true))" `shouldBe` parseType "(Int, Bool)"
+    typeOf "fun(x) pair(id(3), id(x))" `shouldBe` parseType "a->(Int, a)"
 
   it "analyzes a function application" $ do
     typeOf "(fun (x) 1)(4)" `shouldBe` int
@@ -87,20 +76,20 @@ spec = do
     typeOf "let f = (fun(x) x) in f(true)" `shouldBe` bool
 
   it "analyzes a heterogeneous function application in a let block" $ do
-    typeOf "let f = (fun(x) x) in pair(f(3), f(true))" `shouldBe` pairType int bool
+    typeOf "let f = (fun(x) x) in pair(f(3), f(true))" `shouldBe` parseType "(Int, Bool)"
 
   it "analyzes a simple let rec block" $ do
-    typeOf "let rec f = fun (n) 3 in f" `shouldBe` funType a int
+    typeOf "let rec f = fun (n) 3 in f" `shouldBe` parseType "a -> Int"
 
   it "analyzes a recursive let rec block" $ do
-    typeOf "let rec f = fun(n) if zero(n) then 0 else f(n+1) in f" `shouldBe` funType int int
+    typeOf "let rec f = fun(n) if zero(n) then 0 else f(n+1) in f" `shouldBe` parseType "Int->Int"
 
   it "analyzes a let..then block" $ do
-    typeOf "let a=3 then b=true in pair(a,b)" `shouldBe` pairType int bool
+    typeOf "let a=3 then b=true in pair(a,b)" `shouldBe` parseType "(Int, Bool)"
 
   it "analyzes a recursive let..then" $ do
     typeOf "let rec (f = fun(n) 3 then g = fun(n) 4) in pair(f,g)"
-      `shouldBe` pairType (funType a int) (funType b int)
+      `shouldBe` parseType "(a->Int, b->Int)"
 
   it "analyzes factorial" $ do
     let t = typeOf $ unlines
@@ -110,4 +99,4 @@ spec = do
                 "    then 1",
                 "    else n * factorial(n-1)",
                 "in factorial" ]
-    t `shouldBe` funType int int
+    t `shouldBe` parseType "Int->Int"

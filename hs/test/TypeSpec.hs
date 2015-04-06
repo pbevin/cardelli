@@ -4,6 +4,7 @@ import Test.Hspec
 
 import qualified Data.Map as Map
 import Control.Monad.State
+import ParseType
 import Type
 import Env
 
@@ -13,7 +14,7 @@ spec = do
       b    = TypeVariable "b"
       c    = TypeVariable "c"
       d    = TypeVariable "d"
-      e    = funType a int
+      e    = parseType "a -> Int"
       f    = TypeVariable "f"
 
   describe "prune" $ do

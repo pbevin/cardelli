@@ -2,20 +2,15 @@ module SimplifySpec where
 
 import Test.Hspec
 
-import Type
+import ParseType
 import Simplify
-
-a = TypeVariable "a"
-b = TypeVariable "b"
-k = TypeVariable "k"
-m = TypeVariable "m"
 
 spec :: Spec
 spec = do
   describe "simplify" $ do
     it "renames type variables" $ do
-      simplify a `shouldBe` a
-      simplify b `shouldBe` a
-      simplify int `shouldBe` int
-      simplify (funType k m) `shouldBe` (funType a b)
-      simplify (funType k k) `shouldBe` (funType a a)
+      simplify (parseType "a") `shouldBe` (parseType "a")
+      simplify (parseType "b") `shouldBe` (parseType "a")
+      simplify (parseType "Int") `shouldBe` (parseType "Int")
+      simplify (parseType "k -> m") `shouldBe` (parseType "a -> b")
+      simplify (parseType "k -> k") `shouldBe` (parseType "a -> a")

@@ -8,7 +8,7 @@ import Control.Applicative (Applicative)
 import qualified Data.Map as Map
 import Data.Maybe
 import AST
-import Parse
+import ParseType
 import Env
 import RetrieveEnv
 import Type
@@ -23,24 +23,20 @@ initialVars = emptyVars { vars = defs }
   where defs = Map.fromList
           [ ("true", bool),
             ("false", bool),
-            ("zero", funType int bool),
-            ("pair", funType a (funType b (pairType a b))),
-            ("fst", funType (pairType a b) a),
-            ("snd", funType (pairType a b) b),
-            ("id", funType a a),
-            ("eq", funType a (funType a bool)),
-            ("plus", intBinOp),
-            ("minus", intBinOp),
-            ("times", intBinOp),
-            ("div", intBinOp),
-            ("and", boolBinOp),
-            ("or", boolBinOp),
-            ("negate", funType int int),
-            ("not", funType bool bool) ]
-        a = TypeVariable "_a"
-        b = TypeVariable "_b"
-        intBinOp = funType int (funType int int)
-        boolBinOp = funType bool (funType bool bool)
+            ("zero", parseType "Int->Bool"),
+            ("pair", parseType "_a -> _b -> (_a,_b)"),
+            ("fst", parseType "(_a, _b) -> _a"),
+            ("snd", parseType "(_a, _b) -> _b"),
+            ("id", parseType "_a -> _a"),
+            ("eq", parseType "_a -> _a -> Bool"),
+            ("plus", parseType "Int -> Int -> Int"),
+            ("minus", parseType "Int -> Int -> Int"),
+            ("times", parseType "Int -> Int -> Int"),
+            ("div", parseType "Int -> Int -> Int"),
+            ("and", parseType "Bool -> Bool -> Bool"),
+            ("or", parseType "Bool -> Bool -> Bool"),
+            ("negate", parseType "Int -> Int"),
+            ("not", parseType "Bool -> Bool") ]
 
 runAnalyzer :: Analyzer a -> Either String (a, Env)
 runAnalyzer a = case runState (runErrorT (runA a)) emptyEnv of
