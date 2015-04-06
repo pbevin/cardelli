@@ -9,9 +9,6 @@ import qualified Data.Map as Map
 spec :: Spec
 spec = do
   describe "Env" $ do
-    let int = BasicType "int"
-    let bool = BasicType "int"
-
     it "can get and put types" $ do
       let tv = putEnv "a" int $ putEnv "b" bool $ emptyVars
       getEnv "a" tv `shouldBe` Just int

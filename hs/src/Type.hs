@@ -29,8 +29,8 @@ showFuncType args = intercalate "->" $ map sh (init args) ++ [show (last args)]
           | otherwise  = show t
         sh t = show t
 
-int = BasicType "int"
-bool = BasicType "bool"
+int = BasicType "Int"
+bool = BasicType "Bool"
 funType a b = TypeOperator "->" [a,b]
 pairType a b = TypeOperator "," [a,b]
 listType a = TypeOperator "[]" [a]

@@ -11,8 +11,6 @@ spec :: Spec
 spec = do
   let a = TypeVariable "a"
   let b = TypeVariable "b"
-  let int = BasicType "int"
-  let bool = BasicType "bool"
   let aList = listType a
 
   describe "unify" $ do

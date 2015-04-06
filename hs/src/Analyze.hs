@@ -52,7 +52,7 @@ liftA m = Analyzer (lift m)
 
 analyzeExpr :: TypeVars -> Expr -> Analyzer Type
 analyzeExpr tv expr = case expr of
-  Num _ -> return $ BasicType "int"
+  Num _ -> return $ BasicType "Int"
   Var v -> do
     t <- liftA $ retrieveEnv v tv
     case t of

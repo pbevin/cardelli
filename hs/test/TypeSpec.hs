@@ -9,9 +9,7 @@ import Env
 
 spec :: Spec
 spec = do
-  let int  = BasicType "int"
-      bool = BasicType "bool"
-      a    = TypeVariable "a"
+  let a    = TypeVariable "a"
       b    = TypeVariable "b"
       c    = TypeVariable "c"
       d    = TypeVariable "d"
