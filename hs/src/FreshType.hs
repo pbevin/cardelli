@@ -1,5 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module CopyType where
+module FreshType (freshType, getFreshType) where
 
 import Control.Monad.State
 import Control.Applicative
@@ -9,18 +9,23 @@ import qualified Data.Map as Map
 import Type
 import Env
 
+freshType :: Type -> NonGenericVars -> State Env Type
+freshType t ngvars =
+  liftM fst $ runStateT (runCM copier) Map.empty
+    where copier = copyType t ngvars
+
+getFreshType :: Type -> Type
+getFreshType t = fst $ runState (freshType t []) emptyEnv
+
+
 type CopyMap = Map TypeName Type
 
 newtype Copier a = Copier {
   runCM :: StateT CopyMap (State Env) a
 } deriving (Monad, MonadState CopyMap, Functor, Applicative)
 
-runCopier :: Copier a -> Env -> (a, Env)
-runCopier a env = (t, e')
-  where ((t, _), e') = runState (runStateT (runCM a) Map.empty) env
-
-createType :: Copier Type
-createType = Copier (lift newVar)
+liftCT :: State Env a -> Copier a
+liftCT m = Copier (lift m)
 
 copyType :: Type -> NonGenericVars -> Copier Type
 copyType t ngvars = case t of
@@ -36,7 +41,7 @@ copyTypeVariable id = do
   case Map.lookup id copyMap of
     Just t -> return t
     Nothing -> do
-      t <- createType
+      t <- liftCT newVar
       put $ Map.insert id t copyMap
       return t
 

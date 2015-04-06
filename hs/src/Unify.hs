@@ -1,12 +1,16 @@
-module Unify where
+module Unify (unify, unifiable) where
 
 import qualified Data.Map as Map
+import Data.Maybe
 import Control.Monad
 import Type
 import Env
 
 unify :: Type -> Type -> InstanceMap -> Maybe InstanceMap
 unify t1 t2 m = unify' (prune m t1) (prune m t2) m
+
+unifiable :: Type -> Type -> Bool
+unifiable t1 t2 = isJust (unify t1 t2 Map.empty)
 
 unify' :: Type -> Type -> InstanceMap -> Maybe InstanceMap
 unify' t1 t2 m = case (t1, t2) of
