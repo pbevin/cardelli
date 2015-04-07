@@ -1,9 +1,14 @@
 module ParseSpec where
 
 import Test.Hspec
+import Test.QuickCheck
 
 import Parse
+import ShowExpr
+import ASTGen
 import AST
+
+import Debug.Trace
 
 spec :: Spec
 spec = do
@@ -75,3 +80,7 @@ spec = do
       let ab = (FunCall (FunCall (Var "times") (Var "a")) (Var "b"))
       parseFun "a*b+c" `shouldBe`
         FunCall (FunCall (Var "plus") ab) (Var "c")
+
+    it "is the opposite of showExpr" $ property $
+      -- \expr -> length (showExpr expr) < 100
+      \expr -> parseFun (showExpr expr) == expr

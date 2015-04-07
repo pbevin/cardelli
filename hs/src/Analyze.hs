@@ -7,6 +7,7 @@ import Control.Monad.Error
 import Control.Applicative (Applicative)
 import qualified Data.Map as Map
 import Data.Maybe
+import VarName
 import AST
 import ParseType
 import Env
@@ -19,8 +20,8 @@ newtype Analyzer a = Analyzer {
 } deriving (Monad, MonadError String, Functor, Applicative)
 
 initialVars :: TypeVars
-initialVars = emptyVars { vars = defs }
-  where defs = Map.fromList
+initialVars = emptyVars { vars = varNameMap defs }
+  where defs =
           [ ("true", bool),
             ("false", bool),
             ("zero", parseType "Int->Bool"),
@@ -50,7 +51,7 @@ analyzeExpr :: TypeVars -> Expr -> Analyzer Type
 analyzeExpr tv expr = case expr of
   Num _ -> return $ BasicType "Int"
   Var v -> do
-    t <- liftA $ retrieveEnv v tv
+    t <- liftA $ retrieveEnv (VarName v) tv
     case t of
       Just t' -> return t'
       Nothing -> throwError $ "No such variable: " ++ v
@@ -64,7 +65,7 @@ analyzeExpr tv expr = case expr of
 
   Lambda var body -> do
     a <- liftA newVar
-    b <- analyzeExpr (addNonGeneric a $ putEnv var a tv) body
+    b <- analyzeExpr (addNonGeneric a $ putEnv (VarName var) a tv) body
     t <- pruneType $ funType a b
     return t
 
@@ -84,7 +85,7 @@ analyzeDecl :: TypeVars -> Decl -> Analyzer TypeVars
 analyzeDecl tv decl = case decl of
   Assign varName expr -> do
     exprType <- analyzeExpr tv expr
-    return $ putEnv varName exprType tv
+    return $ putEnv (VarName varName) exprType tv
 
   Seq a b -> do
     tv' <- analyzeDecl tv a
@@ -98,7 +99,7 @@ createBinding :: TypeVars -> Decl -> Analyzer TypeVars
 createBinding tv decl = case decl of
   Assign varName _ -> do
     t <- liftA newVar
-    return $ putEnv varName t $ addNonGeneric t tv
+    return $ putEnv (VarName varName) t $ addNonGeneric t tv
 
   Seq a b -> do
     tv' <- createBinding tv a
@@ -109,7 +110,7 @@ createBinding tv decl = case decl of
 analyzeAndUnify :: TypeVars -> Decl -> Analyzer TypeVars
 analyzeAndUnify tv decl = case decl of
   Assign varName expr -> do
-    Just varType  <- liftA $ retrieveEnv varName tv
+    Just varType  <- liftA $ retrieveEnv (VarName varName) tv
     exprType <- analyzeExpr tv expr
     unifyTypes varType exprType
     return tv

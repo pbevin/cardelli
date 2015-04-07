@@ -14,7 +14,7 @@ instance Arbitrary Type where
 
 instance Arbitrary AbstractType where
   arbitrary = do
-    x <- elements $ ['a'..'a']
+    x <- elements $ ['a'..'z']
     xs <- listOf $ elements $ ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ ['_']
     return $ AbstractType (x:xs)
 

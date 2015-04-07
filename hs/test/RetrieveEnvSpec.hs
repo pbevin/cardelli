@@ -2,6 +2,7 @@ module RetrieveEnvSpec where
 
 import Control.Monad.State
 import Test.Hspec
+import VarName
 import Type
 import Env
 import RetrieveEnv
@@ -12,18 +13,18 @@ spec = do
   describe "RetrieveEnv" $ do
     context "for a generic type" $ do
       it "returns Nothing for a non-existent variable" $ do
-        runState (retrieveEnv "a" emptyVars) emptyEnv `shouldBe`
+        runState (retrieveEnv (VarName "a") emptyVars) emptyEnv `shouldBe`
           (Nothing, emptyEnv)
 
       it "returns a copy of a variable when it exists" $ do
         let test = do a <- newVar
-                      retrieveEnv "x" $ putEnv "x" a emptyVars
+                      retrieveEnv (VarName "x") $ putEnv (VarName "x") a emptyVars
 
         let (result, env) = runState test emptyEnv in do
           result `shouldBe` Just (TypeVariable "b")
 
       it "returns the original of a basic type" $ do
-        let test = retrieveEnv "x" $ putEnv "x" int emptyVars
+        let test = retrieveEnv (VarName "x") $ putEnv (VarName "x") int emptyVars
 
         let (result, env) = runState test emptyEnv in do
           result `shouldBe` Just int
@@ -31,7 +32,7 @@ spec = do
       it "returns a copy of a type operator" $ do
         let test = do a <- newVar
                       b <- newVar
-                      retrieveEnv "x" $ putEnv "x" (parseType "a -> b") emptyVars
+                      retrieveEnv (VarName "x") $ putEnv (VarName "x") (parseType "a -> b") emptyVars
 
         let (Just x, env) = runState test emptyEnv in do
           x `shouldBe` parseType "c -> d"
@@ -42,7 +43,7 @@ spec = do
         let test = do a <- newVar
                       b <- newVar
                       let mapType = parseType "(a -> b) -> [a] -> [b]"
-                      retrieveEnv "map" $ putEnv "map" mapType emptyVars
+                      retrieveEnv (VarName "map") $ putEnv (VarName "map") mapType emptyVars
 
         let (Just mapType, env) = runState test emptyEnv in do
           mapType `shouldBe` parseType "(c -> d) -> [c] -> [d]"
@@ -52,15 +53,15 @@ spec = do
 
       it "returns the original of a variable" $ do
         let test = do a <- newVar
-                      let tv = putEnv "x" a vars
-                      retrieveEnv "x" tv
+                      let tv = putEnv (VarName "x") a vars
+                      retrieveEnv (VarName "x") tv
         let (result, env) = runState test emptyEnv in do
           result `shouldBe` Just (TypeVariable "a")
 
       it "returns the original of a type operator" $ do
         let test = do a <- newVar
-                      let tv = putEnv "f" (parseType "a -> a") vars
-                      f <- retrieveEnv "f" tv
+                      let tv = putEnv (VarName "f") (parseType "a -> a") vars
+                      f <- retrieveEnv (VarName "f") tv
                       return (f, a)
 
         let ((f, a), env) = runState test emptyEnv in do

@@ -22,14 +22,14 @@ spec = do
       prune Map.empty a `shouldBe` a
 
     it "returns its instance when there is one" $ do
-      prune (Map.fromList [("b", a)]) b `shouldBe` a
+      prune (typeNameMap [("b", a)]) b `shouldBe` a
 
     it "returns the bottom level when more than 2" $ do
-      prune (Map.fromList [("c", b), ("b", a)]) c `shouldBe` a
+      prune (typeNameMap [("c", b), ("b", a)]) c `shouldBe` a
 
     it "returns a BasicType as-is" $ do
       prune Map.empty int `shouldBe` int
-      prune (Map.fromList [("a", int)]) a `shouldBe` int
+      prune (typeNameMap [("a", int)]) a `shouldBe` int
 
     it "returns a TypeOperator as-is" $ do
       prune Map.empty e `shouldBe` e

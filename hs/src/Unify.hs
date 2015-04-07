@@ -17,7 +17,7 @@ unify' t1 t2 m = case (t1, t2) of
   (TypeVariable id, _)
     | t1 /= t2 && prune m t1 `occursIn` prune m t2 -> Nothing
     | t1 == t2  -> Just m
-    | otherwise -> Just $ Map.insert id t2 m
+    | otherwise -> Just $ Map.insert (TypeName id) t2 m
 
   (_, TypeVariable _) -> unify' t2 t1 m
 

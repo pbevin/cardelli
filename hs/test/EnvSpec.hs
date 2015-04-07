@@ -2,6 +2,7 @@ module EnvSpec where
 
 import Control.Monad.State
 import Test.Hspec
+import VarName
 import Type
 import Env
 import qualified Data.Map as Map
@@ -10,10 +11,10 @@ spec :: Spec
 spec = do
   describe "Env" $ do
     it "can get and put types" $ do
-      let tv = putEnv "a" int $ putEnv "b" bool $ emptyVars
-      getEnv "a" tv `shouldBe` Just int
-      getEnv "b" tv `shouldBe` Just bool
-      getEnv "c" tv `shouldBe` Nothing
+      let tv = putEnv (VarName "a") int $ putEnv (VarName "b") bool $ emptyVars
+      getEnv (VarName "a") tv `shouldBe` Just int
+      getEnv (VarName "b") tv `shouldBe` Just bool
+      getEnv (VarName "c") tv `shouldBe` Nothing
 
     it "can generate a new variable" $ do
       runState newVar emptyEnv `shouldBe`

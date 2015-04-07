@@ -12,9 +12,9 @@ build-type:          Simple
 cabal-version:       >=1.20
 
 executable repl
-  hs-source-dirs: src, .
+  hs-source-dirs: src, test, .
   main-is: Main.hs
   default-language: Haskell2010
   -- other-modules:
-  build-depends: base, parsec, mtl, containers, readline
+  build-depends: base, parsec, mtl, containers, readline, QuickCheck
   ghc-options:

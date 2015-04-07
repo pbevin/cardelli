@@ -4,9 +4,9 @@ import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+import VarName
 import Type
 
-type VarName = String
 type NonGenericVars = [TypeName]
 
 type VarCounter  = Int
@@ -39,7 +39,7 @@ putEnv :: VarName -> Type -> TypeVars -> TypeVars
 putEnv a t tv = tv { vars = Map.insert a t (vars tv) }
 
 addNonGeneric :: Type -> TypeVars -> TypeVars
-addNonGeneric (TypeVariable a) tv = tv { ngvars = a:ngvars tv }
+addNonGeneric (TypeVariable a) tv = tv { ngvars = (TypeName a):ngvars tv }
 addNonGeneric _ tv = tv
 
 getEnv :: VarName -> TypeVars -> Maybe Type

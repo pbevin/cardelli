@@ -4,6 +4,7 @@ module RetrieveEnv where
 
 import Control.Monad.State
 import qualified Data.Map as Map
+import VarName
 import Type
 import Env
 import FreshType

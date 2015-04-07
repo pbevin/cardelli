@@ -7,14 +7,13 @@ import ParseType
 import Unify
 
 success vs = Just $ Map.fromList $ map tt vs
-  where tt (name, typeStr) = (name, parseType typeStr)
-
+  where tt (name, typeStr) = (TypeName name, parseType typeStr)
 
 spec :: Spec
 spec = do
   describe "unify" $ do
     let u t1 t2 = u' t1 t2 []
-        u' t1 t2 ngvars = unify (parseType t1) (parseType t2) $ Map.fromList ngvars
+        u' t1 t2 ngvars = unify (parseType t1) (parseType t2) $ typeNameMap ngvars
 
     it "unifies a with int" $ do
       u "a" "Int" `shouldBe` success [("a", "Int")]

@@ -1,16 +1,14 @@
 module AST where
 
-type Ident = String
-
-data Expr = Var Ident
+data Expr = Var String
           | Num Integer
           | Cond Expr Expr Expr
-          | Lambda Ident Expr
+          | Lambda String Expr
           | FunCall Expr Expr
           | Block Decl Expr
           deriving (Show, Eq)
 
-data Decl = Assign Ident Expr
+data Decl = Assign String Expr
           | Seq Decl Decl
           | Rec Decl
           deriving (Show, Eq)

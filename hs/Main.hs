@@ -2,8 +2,11 @@ import System.Console.Readline
 
 import AST
 import Analyze
-import Parse (parseExpr)
+import Parse
 import ParseType
+import ShowExpr
+import Test.QuickCheck
+import ASTGen
 
 main = hello >> readEvalPrintLoop
 

@@ -30,8 +30,8 @@ liftCT m = Copier (lift m)
 copyType :: Type -> NonGenericVars -> Copier Type
 copyType t ngvars = case t of
   TypeVariable id
-    | id `elem` ngvars -> return t
-    | otherwise        -> copyTypeVariable id
+    | (TypeName id) `elem` ngvars -> return t
+    | otherwise -> copyTypeVariable (TypeName id)
   BasicType _ -> return t
   TypeOperator op args -> copyArgs args ngvars >>= return . TypeOperator op
 

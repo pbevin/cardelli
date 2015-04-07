@@ -5,6 +5,7 @@ import Test.Hspec
 import Data.Maybe
 import Control.Monad.State
 import qualified Data.Map as Map
+import VarName
 import Analyze
 import Parse
 import Env
@@ -36,15 +37,15 @@ runTypeInferencer initialVars =
 spec :: Spec
 spec = do
   it "retrieves a variable's type from the env" $ do
-    let vars = mkTypeVars [("n", TypeVariable "a")]
+    let vars = mkTypeVars [(VarName "n", TypeVariable "a")]
     findType "n" vars `shouldBe` TypeVariable "a"
 
   it "assigns int to a number" $ do
     typeOf "1" `shouldBe` int
 
   it "unifies types for a cond" $ do
-    let vars = mkTypeVars [ ("x", TypeVariable "a"),
-                            ("y", TypeVariable "b") ]
+    let vars = mkTypeVars [ (VarName "x", TypeVariable "a"),
+                            (VarName "y", TypeVariable "b") ]
     findType "if x then 1 else y" vars `shouldBe` int
     findType "if x then y else 1" vars `shouldBe` int
     findType "if x then x else x" vars `shouldBe` bool

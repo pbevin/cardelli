@@ -8,13 +8,14 @@ import Text.Parsec.Expr
 import qualified Text.Parsec.Token as T
 import Text.Parsec.Language (emptyDef)
 
+import VarName
 import AST
 
 funStyle :: T.LanguageDef st
 funStyle = emptyDef{ T.commentStart = "{-"
                    , T.commentEnd = "-}"
                    , T.identStart = letter
-                   , T.identLetter = alphaNum
+                   , T.identLetter = alphaNum <|> char '_'
                    , T.reservedOpNames = ["="]
                    , T.reservedNames = ["fun", "let", "rec", "in",
                                         "if", "then", "else"]
