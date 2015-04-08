@@ -1,4 +1,4 @@
-# Haskell Project Template
+# Cardelli Type Checker
 
 ## Setup
 
