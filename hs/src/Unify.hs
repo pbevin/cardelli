@@ -19,19 +19,22 @@ unify' t1 t2 m = case (t1, t2) of
     | t1 == t2  -> Just m
     | otherwise -> Just $ Map.insert (TypeName id) t2 m
 
-  (_, TypeVariable _) -> unify' t2 t1 m
-
   (BasicType _, BasicType _)
     | t1 == t2 -> Just m
     | otherwise -> Nothing
 
-  (BasicType _, TypeOperator _ _) -> Nothing
-
-  (TypeOperator _ _, BasicType _) -> Nothing
-
   (TypeOperator op1 args1, TypeOperator op2 args2)
     | op1 /= op2 -> Nothing
     | otherwise  -> unifyArgs args1 args2 m
+
+  (_, TypeVariable _) -> unify' t2 t1 m
+  ( _, _) -> Nothing
+
+-- unifyArgs :: [Type] -> [Type] -> InstanceMap -> Maybe InstanceMap
+-- unifyArgs [] [] m = Just m
+-- unifyArgs (x:xs) (y:ys) m = liftM (unifyArgs xs ys) $ unify x y m
+-- unifyArgs _ _ _ = Nothing
+
 
 unifyArgs :: [Type] -> [Type] -> InstanceMap -> Maybe InstanceMap
 unifyArgs args1 args2 m

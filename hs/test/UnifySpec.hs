@@ -43,7 +43,12 @@ spec = do
       u "a -> Bool" "Int -> b" `shouldBe` success [("a", "Int"), ("b", "Bool")]
 
     it "does not unify types with different structures" $ do
-      u "int -> int" "int -> int -> int" `shouldBe` Nothing
+      u "Int -> Int" "Int -> Int -> Int" `shouldBe` Nothing
+
+    it "unifies variables with a 2-arg function" $ do
+      u "Int -> a" "Int -> Int -> Int" `shouldBe` success [("a", "Int -> Int")]
+      u "a -> Int" "Int -> Int -> Int" `shouldBe` Nothing
+      u "a -> Int" "(Int -> Int) -> Int" `shouldBe` success [("a", "Int -> Int")]
 
     it "unifies a variable with another variable" $ do
       u "Int -> a" "Int -> b" `shouldBe` success [("a", "b")]
