@@ -30,16 +30,7 @@ unify' t1 t2 m = case (t1, t2) of
   (_, TypeVariable _) -> unify' t2 t1 m
   ( _, _) -> Nothing
 
--- unifyArgs :: [Type] -> [Type] -> InstanceMap -> Maybe InstanceMap
--- unifyArgs [] [] m = Just m
--- unifyArgs (x:xs) (y:ys) m = liftM (unifyArgs xs ys) $ unify x y m
--- unifyArgs _ _ _ = Nothing
-
-
 unifyArgs :: [Type] -> [Type] -> InstanceMap -> Maybe InstanceMap
-unifyArgs args1 args2 m
-  | length args1 /= length args2 = Nothing
-  | otherwise = foldM unifyPair m $ zip args1 args2
-
-unifyPair :: InstanceMap -> (Type, Type) -> Maybe InstanceMap
-unifyPair m (a1, a2) = liftM (Map.union m) $ unify a1 a2 m
+unifyArgs [] [] m = Just m
+unifyArgs (x:xs) (y:ys) m = unify x y m >>= unifyArgs xs ys
+unifyArgs _ _ _ = Nothing
