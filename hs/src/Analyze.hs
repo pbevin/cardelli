@@ -3,7 +3,7 @@
 module Analyze (runAnalyzer, analyzeExpr, initialVars) where
 
 import Control.Monad.State
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Applicative (Applicative)
 import qualified Data.Map as Map
 import Data.Maybe
@@ -16,7 +16,7 @@ import Type
 import Unify
 
 newtype Analyzer a = Analyzer {
-  runA :: ErrorT String (State Env) a
+  runA :: ExceptT String (State Env) a
 } deriving (Monad, MonadError String, Functor, Applicative)
 
 initialVars :: TypeVars
@@ -40,7 +40,7 @@ initialVars = emptyVars { vars = varNameMap defs }
             ("not", parseType "Bool -> Bool") ]
 
 runAnalyzer :: Analyzer a -> Either String (a, Env)
-runAnalyzer a = case runState (runErrorT (runA a)) emptyEnv of
+runAnalyzer a = case runState (runExceptT (runA a)) emptyEnv of
   (Left err, _)  -> Left err
   (Right r, env) -> Right (r, env)
 
