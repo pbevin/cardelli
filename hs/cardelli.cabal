@@ -16,5 +16,5 @@ executable repl
   main-is: Main.hs
   default-language: Haskell2010
   -- other-modules:
-  build-depends: base, parsec, mtl, containers, readline, QuickCheck
+  build-depends: base, parsec, mtl, containers, haskeline, QuickCheck
   ghc-options:
