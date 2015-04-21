@@ -7,6 +7,7 @@ import ParseType
 import ShowExpr
 import Test.QuickCheck
 import ASTGen
+import Simplify
 
 main = hello >> readEvalPrintLoop
 
@@ -28,7 +29,7 @@ typeInference input = case parseExpr input of
 typeInference' :: Expr -> String
 typeInference' expr = case runAnalyzer (analyzeExpr initialVars expr) of
   Left err -> err
-  Right (t, env) -> show t
+  Right (t, env) -> show (simplify t)
 
 hello :: IO ()
 hello = do
