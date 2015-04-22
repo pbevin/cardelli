@@ -18,3 +18,11 @@ executable repl
   -- other-modules:
   build-depends: base, parsec, mtl, containers, haskeline, QuickCheck
   ghc-options:
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  hs-source-dirs: src, test
+  main-is: Spec.hs
+  default-language: Haskell2010
+  build-depends: base, parsec, mtl, containers, QuickCheck, hspec
+  ghc-options:

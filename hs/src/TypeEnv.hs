@@ -1,4 +1,4 @@
-module Env where
+module TypeEnv where
 
 import Control.Monad.State
 import Data.Map (Map)
@@ -12,7 +12,7 @@ type NonGenericVars = [TypeName]
 type VarCounter  = Int
 type VarMap      = Map VarName Type
 
-data Env = Env {
+data TypeEnv = TypeEnv {
   counter :: VarCounter,
   instances :: InstanceMap
 } deriving (Eq, Show)
@@ -22,13 +22,13 @@ data TypeVars = TypeVars {
   ngvars :: NonGenericVars
 } deriving (Eq, Show)
 
-emptyEnv :: Env
-emptyEnv = Env 0 Map.empty
+emptyEnv :: TypeEnv
+emptyEnv = TypeEnv 0 Map.empty
 
 emptyVars :: TypeVars
 emptyVars = TypeVars Map.empty []
 
-newVar :: State Env Type
+newVar :: State TypeEnv Type
 newVar = do
   e <- get
   let n = counter e

@@ -6,7 +6,7 @@ import qualified Data.Map as Map
 import Control.Monad.State
 import ParseType
 import Type
-import Env
+import TypeEnv
 
 spec :: Spec
 spec = do

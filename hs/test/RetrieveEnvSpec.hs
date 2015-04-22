@@ -4,7 +4,7 @@ import Control.Monad.State
 import Test.Hspec
 import VarName
 import Type
-import Env
+import TypeEnv
 import RetrieveEnv
 import ParseType
 

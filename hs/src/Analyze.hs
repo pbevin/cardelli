@@ -10,13 +10,13 @@ import Data.Maybe
 import VarName
 import AST
 import ParseType
-import Env
+import TypeEnv
 import RetrieveEnv
 import Type
 import Unify
 
 newtype Analyzer a = Analyzer {
-  runA :: ExceptT String (State Env) a
+  runA :: ExceptT String (State TypeEnv) a
 } deriving (Monad, MonadError String, Functor, Applicative)
 
 initialVars :: TypeVars
@@ -39,12 +39,12 @@ initialVars = emptyVars { vars = varNameMap defs }
             ("negate", parseType "Int -> Int"),
             ("not", parseType "Bool -> Bool") ]
 
-runAnalyzer :: Analyzer a -> Either String (a, Env)
+runAnalyzer :: Analyzer a -> Either String (a, TypeEnv)
 runAnalyzer a = case runState (runExceptT (runA a)) emptyEnv of
   (Left err, _)  -> Left err
   (Right r, env) -> Right (r, env)
 
-liftA :: State Env a -> Analyzer a
+liftA :: State TypeEnv a -> Analyzer a
 liftA m = Analyzer (lift m)
 
 analyzeExpr :: TypeVars -> Expr -> Analyzer Type

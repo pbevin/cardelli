@@ -4,12 +4,12 @@ import Control.Monad.State
 import Test.Hspec
 import VarName
 import Type
-import Env
+import TypeEnv
 import qualified Data.Map as Map
 
 spec :: Spec
 spec = do
-  describe "Env" $ do
+  describe "TypeEnv" $ do
     it "can get and put types" $ do
       let tv = putEnv (VarName "a") int $ putEnv (VarName "b") bool $ emptyVars
       getEnv (VarName "a") tv `shouldBe` Just int
@@ -18,7 +18,7 @@ spec = do
 
     it "can generate a new variable" $ do
       runState newVar emptyEnv `shouldBe`
-        (TypeVariable "a", Env 1 Map.empty)
+        (TypeVariable "a", TypeEnv 1 Map.empty)
 
     describe "varName" $ do
       it "runs through the alphabet" $ do

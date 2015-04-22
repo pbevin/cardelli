@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 import Data.Maybe
 import Control.Monad
 import Type
-import Env
+import TypeEnv
 
 unify :: Type -> Type -> InstanceMap -> Maybe InstanceMap
 unify t1 t2 m = unify' (prune m t1) (prune m t2) m

@@ -6,10 +6,10 @@ import Control.Monad.State
 import qualified Data.Map as Map
 import VarName
 import Type
-import Env
+import TypeEnv
 import FreshType
 
-retrieveEnv :: VarName -> TypeVars -> State Env (Maybe Type)
+retrieveEnv :: VarName -> TypeVars -> State TypeEnv (Maybe Type)
 retrieveEnv a tv = do
   case Map.lookup a (vars tv) of
     Nothing -> return Nothing

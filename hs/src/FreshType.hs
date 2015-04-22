@@ -7,9 +7,9 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Type
-import Env
+import TypeEnv
 
-freshType :: Type -> NonGenericVars -> State Env Type
+freshType :: Type -> NonGenericVars -> State TypeEnv Type
 freshType t ngvars =
   liftM fst $ runStateT (runCM copier) Map.empty
     where copier = copyType t ngvars
@@ -21,10 +21,10 @@ getFreshType t = fst $ runState (freshType t []) emptyEnv
 type CopyMap = Map TypeName Type
 
 newtype Copier a = Copier {
-  runCM :: StateT CopyMap (State Env) a
+  runCM :: StateT CopyMap (State TypeEnv) a
 } deriving (Monad, MonadState CopyMap, Functor, Applicative)
 
-liftCT :: State Env a -> Copier a
+liftCT :: State TypeEnv a -> Copier a
 liftCT m = Copier (lift m)
 
 copyType :: Type -> NonGenericVars -> Copier Type

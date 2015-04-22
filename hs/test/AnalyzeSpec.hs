@@ -8,7 +8,7 @@ import qualified Data.Map as Map
 import VarName
 import Analyze
 import Parse
-import Env
+import TypeEnv
 import Type
 import Simplify
 import ParseType
@@ -30,7 +30,7 @@ typeOf str = simplify $ findType str initialVars
 debug :: String -> IO ()
 debug prog = putStrLn $ either ("Error: " ++) show $ runTypeInferencer initialVars prog
 
-runTypeInferencer :: TypeVars -> String -> (Either String (Type, Env))
+runTypeInferencer :: TypeVars -> String -> (Either String (Type, TypeEnv))
 runTypeInferencer initialVars =
   runAnalyzer . analyzeExpr initialVars . parseFun
 
